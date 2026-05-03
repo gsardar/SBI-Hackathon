@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medusa Interactive Demo - SBI Finnovation</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Enable class-based dark mode
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .demo-wrapper {
+            display: flex;
+            gap: 4rem;
+            align-items: center;
+            max-width: 1200px;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        .demo-text {
+            flex: 1;
+            max-width: 550px;
+        }
+
+        /* Phone Mockup */
+        .phone-mockup {
+            width: 340px;
+            height: 680px;
+            background: #000000;
+            border: 14px solid #1e293b;
+            border-radius: 45px;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px #e2e8f0;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            color: #0f172a;
+        }
+
+        .dark .phone-mockup {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px #334155;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 28px;
+            background: #1e293b;
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 18px;
+            z-index: 100;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 90;
+            color: white;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            transition: color 0.3s ease;
+        }
+
+        /* Screens */
+        .app-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #f8fafc;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .screen-active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) !important;
+        }
+
+        .screen-hidden-right {
+            transform: translateX(100%);
+        }
+
+        .screen-hidden-left {
+            transform: translateX(-100%);
+        }
+
+        /* Specific Screen Styles */
+        #screen-sleep {
+            background: #000000;
+            color: white;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        #screen-lock {
+            background: linear-gradient(135deg, #4c1d95 0%, #7e22ce 40%, #0ea5e9 80%, #0d9488 100%);
+            color: white;
+            cursor: pointer;
+        }
+
+        .glow-effect {
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
+                filter: brightness(1);
+            }
+
+            100% {
+                box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.4);
+                filter: brightness(1.2);
+            }
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.85);
+                box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 15px rgba(2, 132, 199, 0);
+            }
+
+            100% {
+                transform: scale(0.85);
+                box-shadow: 0 0 0 0 rgba(2, 132, 199, 0);
+            }
+        }
+
+        .pulse-animation {
+            animation: pulse-ring 2s infinite;
+        }
+
+        /* Call Screens */
+        #screen-incoming-call,
+        #screen-active-call {
+            background: linear-gradient(to bottom, #1e293b, #0f172a);
+            color: white;
+            z-index: 85;
+        }
+
+        .subtitle-box {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .subtitle-line {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 4px;
+            animation: slideUpFade 0.4s ease-out forwards;
+        }
+
+        .subtitle-line.latest {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Notification Dropdown */
+        #incoming-notification {
+            position: absolute;
+            top: -100px;
+            left: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 12px 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 80;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Medusa Intercept Bottom Sheet */
+        #medusa-intercept {
+            position: absolute;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            transition: bottom 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #0f172a;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 20px 20px;
+        }
+
+        .active-intercept {
+            bottom: 0 !important;
+        }
+
+        /* Reward Celebration Animation */
+        @keyframes celebratePop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+                background-color: #fef3c7;
+                border-color: #fbbf24;
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .celebrate-anim {
+            animation: celebratePop 0.6s ease-out;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 20px;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 50;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #94a3b8;
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: #0284c7;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Dialpad grid styles */
+        .dial-key {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dial-key:active {
+            background: #e2e8f0;
+        }
+
+        .dial-key .num {
+            font-size: 24px;
+            font-weight: 500;
+            color: #1e293b;
+            line-height: 1;
+        }
+
+        .dial-key .chars {
+            font-size: 9px;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* Flow Tracker Styles (Dynamic for Light/Dark Mode) */
+        .flow-node .flow-icon {
+            background-color: #f1f5f9;
+            color: #94a3b8;
+            border-color: white;
+        }
+
+        .dark .flow-node .flow-icon {
+            background-color: #334155;
+            border-color: #1e293b;
+            color: #94a3b8;
+        }
+
+        .flow-node.active-node .flow-icon {
+            background-color: #0ea5e9 !important;
+            color: white !important;
+            border-color: #bae6fd !important;
+            transform: scale(1.1);
+        }
+
+        .dark .flow-node.active-node .flow-icon {
+            border-color: #0369a1 !important;
+        }
+
+        .flow-node.active-node .flow-text {
+            color: #0ea5e9;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white">
+
+    <!-- Theme Toggle -->
+    <button onclick="toggleTheme()"
+        class="absolute top-6 right-8 w-12 h-12 bg-white dark:bg-slate-800 rounded-full shadow-md flex items-center justify-center text-xl text-slate-600 dark:text-yellow-400 border border-slate-200 dark:border-slate-700 transition-all hover:scale-105 z-50">
+        <i id="theme-icon" class="fa-solid fa-moon"></i>
+    </button>
+
+    <div class="demo-wrapper">
+        <!-- Presentation Text & Controls -->
+        <div class="demo-text">
+            <div
+                class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
+                <i class="fa-solid fa-bolt"></i> Live App Demo
+            </div>
+            <h1 class="text-4xl font-bold mb-4 leading-tight">Medusa Active<br><span
+                    class="text-sky-600 dark:text-sky-400">Threat Defense</span></h1>
+            <p class="text-slate-600 dark:text-slate-400 text-base mb-6 leading-relaxed">
+                Unlock the device to initiate the automated presentation flow. Watch how Medusa's on-device ML
+                classifier instantly intercepts <b>Text Scams</b> and a live <b>Social Engineering Voice Call</b> in
+                sequence, before the user is compromised.
+            </p>
+
+            <!-- Interactive Presentation Controls (Simplified) -->
+            <div
+                class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest"><i
+                            class="fa-solid fa-play mr-1"></i> Presentation Status</h4>
+                    <span id="demo-status" class="text-xs font-bold text-sky-500">Waiting for Unlock...</span>
+                </div>
+                <button onclick="resetPhone()"
+                    class="mt-3 w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 p-3 rounded-xl font-bold text-sm transition-all shadow-sm">
+                    <i class="fa-solid fa-rotate-right"></i> Restart Demo Sequence
+                </button>
+            </div>
+
+            <!-- Dynamic Interactive Flowchart -->
+            <div
+                class="mt-6 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700">
+                <h3
+                    class="text-slate-800 dark:text-white font-bold mb-6 text-sm uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-network-wired text-sky-500"></i> Live Processing Flow
+                </h3>
+
+                <div class="flex items-center justify-between relative px-2">
+                    <!-- Connecting Line -->
+                    <div class="absolute left-6 right-6 top-5 h-1 bg-slate-100 dark:bg-slate-700 -z-10 rounded-full">
+                    </div>
+
+                    <!-- Nodes -->
+                    <div id="flow-1"
+                        class="flow-node active-node flex flex-col items-center gap-2 transition-all duration-300">
+                        <div
+                            class="flow-icon w-10 h-10 rounded-full flex items-center justify-center border-4 shadow-sm transition-all duration-300">
+                            <i class="fa-solid fa-mobile-screen"></i></div>
+                        <span
+                            class="flow-text text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase transition-colors">Monitoring</span>
+                    </div>
+                    <div id="flow-2"
+                        class="flow-node flex flex-col items-center gap-2 transition-all duration-300 opacity-60">
+                        <div
+                            class="flow-icon w-10 h-10 rounded-full flex items-center justify-center border-4 shadow-sm transition-all duration-300">
+                            <i class="fa-solid fa-user-secret"></i></div>
+                        <span
+                            class="flow-text text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase transition-colors">Threat
+                            In</span>
+                    </div>
+                    <div id="flow-3"
+                        class="flow-node flex flex-col items-center gap-2 transition-all duration-300 opacity-60">
+                        <div
+                            class="flow-icon w-10 h-10 rounded-full flex items-center justify-center border-4 shadow-sm transition-all duration-300">
+                            <i class="fa-solid fa-microchip"></i></div>
+                        <span
+                            class="flow-text text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase transition-colors">AI
+                            Intercept</span>
+                    </div>
+                    <div id="flow-4"
+                        class="flow-node flex flex-col items-center gap-2 transition-all duration-300 opacity-60">
+                        <div
+                            class="flow-icon w-10 h-10 rounded-full flex items-center justify-center border-4 shadow-sm transition-all duration-300">
+                            <i class="fa-solid fa-building-shield"></i></div>
+                        <span
+                            class="flow-text text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase transition-colors">Report/Reward</span>
+                    </div>
+                </div>
+
+                <div
+                    class="mt-6 text-center h-8 bg-slate-50 dark:bg-slate-900 rounded-lg flex items-center justify-center border border-slate-100 dark:border-slate-700">
+                    <p id="flow-desc"
+                        class="text-[11px] text-slate-600 dark:text-slate-400 font-semibold tracking-wide transition-all duration-300">
+                        Awaiting device activation...</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Interactive Phone Mockup -->
+        <div class="phone-mockup" id="phoneMockup">
+            <div class="phone-notch"></div>
+
+            <div class="status-bar" id="status-bar">
+                <span id="clock">09:21</span>
+                <div class="flex gap-1.5">
+                    <i class="fa-solid fa-wifi text-[10px]"></i>
+                    <i class="fa-solid fa-signal text-[10px]"></i>
+                    <i class="fa-solid fa-battery-full text-[10px]"></i>
+                </div>
+            </div>
+
+            <!-- Screen 1: Sleep -->
+            <div id="screen-sleep" class="app-screen screen-active" onclick="wakePhone()">
+                <div
+                    class="w-16 h-16 rounded-full border-2 border-slate-700 flex items-center justify-center animate-pulse mb-4">
+                    <i class="fa-solid fa-hand-pointer text-slate-400 text-2xl"></i>
+                </div>
+                <p class="text-slate-400 font-medium">Tap to wake up</p>
+                <p class="text-slate-600 text-xs mt-2">(Interactive Demo)</p>
+            </div>
+
+            <!-- Screen 2: Lock Screen -->
+            <div id="screen-lock" class="app-screen screen-hidden-right" onclick="unlockPhone()">
+                <div class="relative z-10 flex flex-col h-full w-full pt-20 px-4">
+                    <div class="text-center text-white mb-6">
+                        <i class="fa-solid fa-lock text-xl mb-2 opacity-80"></i>
+                        <div class="text-6xl font-medium tracking-tight mb-1" id="lock-clock">09:21</div>
+                        <div class="text-sm font-medium opacity-90">Wed, April 8</div>
+                    </div>
+
+                    <!-- Lock Screen Notification Bubbles -->
+                    <div class="space-y-3 w-full px-2 mt-4">
+                        <div class="glass-panel rounded-2xl p-3 flex items-center gap-3">
+                            <div
+                                class="bg-sky-600 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm shrink-0">
+                                <i class="fa-solid fa-shield-halved text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-white font-semibold text-[13px]">Medusa Guard</span>
+                                    <span class="text-white/80 text-[10px]">09:15</span>
+                                </div>
+                                <p class="text-white/90 text-[11px] font-medium m-0 leading-tight">Blocked 2 harmful
+                                    messages today. Family network secured.</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel rounded-2xl p-3 flex items-center gap-3">
+                            <div
+                                class="bg-green-500 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm shrink-0">
+                                <i class="fa-brands fa-whatsapp text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-white font-semibold text-[13px]">WhatsApp</span>
+                                    <span class="text-white/80 text-[10px]">08:30</span>
+                                </div>
+                                <p class="text-white/90 text-[11px] font-medium m-0 leading-tight">2 new messages from
+                                    Family Group</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-auto mb-8 animate-bounce">
+                        <p class="text-white font-semibold text-sm drop-shadow-md">Swipe or Tap to Unlock</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 3: Home / Medusa Dashboard -->
+            <div id="screen-home" class="app-screen screen-hidden-right pb-20">
+                <!-- App Header -->
+                <div class="bg-sky-700 text-white pt-14 pb-6 px-5 rounded-b-3xl shadow-md relative z-10">
+                    <div class="absolute top-12 left-5 text-xl cursor-pointer hover:text-sky-200">
+                        <i class="fa-solid fa-gear"></i>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div
+                            class="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-3 shadow-lg pulse-animation relative">
+                            <i class="fa-solid fa-shield-halved text-3xl text-sky-700 relative z-10"></i>
+                        </div>
+                        <h2
+                            class="text-3xl font-black m-0 tracking-tight bg-gradient-to-br from-white to-sky-200 bg-clip-text text-transparent drop-shadow-md">
+                            MEDUSA</h2>
+                        <span
+                            class="text-sky-100 text-[9px] font-bold uppercase tracking-widest mt-1 opacity-90 border border-sky-400/50 rounded-full px-2 py-0.5">Device
+                            Protected</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 p-4 flex flex-col gap-3 overflow-y-auto mt-2">
+
+                    <div onclick="openInnerPage('screen-contacts')"
+                        class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <div
+                            class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-slate-800 m-0">Trusted SBI Contacts</h4>
+                            <p class="text-[10px] text-slate-500 m-0">Registry verified numbers</p>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-green-500 text-xl"></i>
+                    </div>
+
+                    <div onclick="openInnerPage('screen-loved-ones')"
+                        class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <div
+                            class="w-10 h-10 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-heart"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-slate-800 m-0">Loved Ones</h4>
+                            <p class="text-[10px] text-slate-500 m-0">Family Network Linked</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 text-sm"></i>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-slate-800 m-0">On-Device AI</h4>
+                            <p class="text-[10px] text-slate-500 m-0 leading-tight">ML Classifier Active</p>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-sky-500 animate-pulse mr-1 shrink-0"></div>
+                    </div>
+
+                    <!-- App & Permission Scan Monitor -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-lg shrink-0">
+                            <i class="fa-solid fa-mobile-button"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-bold text-slate-800 m-0">App Permission Scan</h4>
+                            <p class="text-[10px] text-slate-500 m-0 leading-tight">0 Suspicious Apps Found</p>
+                        </div>
+                        <i class="fa-solid fa-shield-virus text-purple-500 text-lg"></i>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Screen: Calls Tab -->
+            <div id="screen-calls" class="app-screen screen-hidden-right pb-20">
+                <div class="bg-slate-800 text-white pt-14 pb-4 px-5 shadow-md z-10 flex justify-between items-center">
+                    <h2 class="text-xl font-bold m-0">Recent Calls</h2>
+                    <i class="fa-solid fa-magnifying-glass text-slate-300"></i>
+                </div>
+                <div class="flex-1 p-3 flex flex-col gap-3 overflow-y-auto bg-slate-50 relative">
+
+                    <!-- Motivation Banner -->
+                    <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-start gap-3 shadow-sm">
+                        <i class="fa-solid fa-hand-holding-heart text-blue-500 mt-1 text-lg"></i>
+                        <div>
+                            <span
+                                class="text-[11px] font-bold text-blue-900 block uppercase tracking-wide mb-0.5">Community
+                                Defense Fact</span>
+                            <span class="text-[10px] text-blue-800 leading-tight block">Over ₹1,200 Cr was saved last
+                                month via proactive reporting. Your Medusa app protects not just you, but the entire
+                                elderly community.</span>
+                        </div>
+                    </div>
+
+                    <!-- Native-looking Call Log -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+
+                        <div
+                            class="p-3 border-b border-slate-100 flex justify-between items-center hover:bg-slate-50 cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-600 font-bold shrink-0">
+                                    R</div>
+                                <div>
+                                    <span class="font-bold text-sm text-slate-800 block">Rahul (Son)</span>
+                                    <span class="text-[10px] text-slate-500"><i
+                                            class="fa-solid fa-arrow-down-left text-green-500"></i> Today, 08:30
+                                        AM</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="text-[10px] text-slate-400">2 min</span>
+                                <i class="fa-solid fa-phone text-slate-300"></i>
+                            </div>
+                        </div>
+
+                        <div
+                            class="p-3 border-b border-slate-100 flex justify-between items-center hover:bg-red-50 bg-red-50/50 cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 bg-red-200 rounded-full flex items-center justify-center text-red-600 font-bold shrink-0">
+                                    <i class="fa-solid fa-user-secret"></i></div>
+                                <div>
+                                    <span class="font-bold text-sm text-red-600 block"><i
+                                            class="fa-solid fa-triangle-exclamation mr-1"></i> Suspected Scam</span>
+                                    <span class="text-[10px] text-red-500 font-medium">Medusa Blocked • +91
+                                        9988776655</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-phone-slash text-red-400"></i>
+                        </div>
+
+                        <div class="p-3 flex justify-between items-center hover:bg-yellow-50 cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 bg-yellow-200 rounded-full flex items-center justify-center text-yellow-700 font-bold shrink-0">
+                                    <i class="fa-solid fa-bullhorn"></i></div>
+                                <div>
+                                    <span class="font-bold text-sm text-slate-800 block">Telemarketer</span>
+                                    <span class="text-[10px] text-yellow-600 font-medium">Potential Promotion • 011
+                                        223344</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="text-[10px] text-slate-400">Missed</span>
+                                <i class="fa-solid fa-phone text-slate-300"></i>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Floating Dialer Button -->
+                    <div onclick="openDialpad()"
+                        class="absolute bottom-4 right-4 w-12 h-12 bg-sky-600 hover:bg-sky-700 transition-colors rounded-full shadow-lg flex items-center justify-center text-white text-xl cursor-pointer">
+                        <i class="fa-solid fa-grip-vertical"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen: Dialpad Overlay -->
+            <div id="screen-dialpad"
+                class="app-screen z-40 transform translate-y-full bg-white transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+                <div class="pt-14 pb-4 px-5 flex justify-between items-center border-b border-slate-100">
+                    <i class="fa-solid fa-chevron-down text-xl text-slate-400 cursor-pointer p-2"
+                        onclick="closeDialpad()"></i>
+                    <span class="font-semibold text-slate-600">Dialer</span>
+                    <i class="fa-solid fa-ellipsis-vertical text-slate-400 p-2"></i>
+                </div>
+
+                <div class="flex-1 flex flex-col pt-6 pb-24">
+                    <!-- Entered Number Display -->
+                    <div class="h-20 flex items-center justify-center mb-6">
+                        <h2 id="dialpad-display" class="text-4xl font-light text-slate-800 tracking-wider"></h2>
+                    </div>
+
+                    <!-- Dial Grid -->
+                    <div class="grid grid-cols-3 gap-y-4 gap-x-6 mx-auto px-10 mb-8">
+                        <div class="dial-key" onclick="dialNum('1')"><span class="num">1</span><span
+                                class="chars">&nbsp;</span></div>
+                        <div class="dial-key" onclick="dialNum('2')"><span class="num">2</span><span
+                                class="chars">ABC</span></div>
+                        <div class="dial-key" onclick="dialNum('3')"><span class="num">3</span><span
+                                class="chars">DEF</span></div>
+
+                        <div class="dial-key" onclick="dialNum('4')"><span class="num">4</span><span
+                                class="chars">GHI</span></div>
+                        <div class="dial-key" onclick="dialNum('5')"><span class="num">5</span><span
+                                class="chars">JKL</span></div>
+                        <div class="dial-key" onclick="dialNum('6')"><span class="num">6</span><span
+                                class="chars">MNO</span></div>
+
+                        <div class="dial-key" onclick="dialNum('7')"><span class="num">7</span><span
+                                class="chars">PQRS</span></div>
+                        <div class="dial-key" onclick="dialNum('8')"><span class="num">8</span><span
+                                class="chars">TUV</span></div>
+                        <div class="dial-key" onclick="dialNum('9')"><span class="num">9</span><span
+                                class="chars">WXYZ</span></div>
+
+                        <div class="dial-key" onclick="dialNum('*')"><span class="num">*</span><span
+                                class="chars">&nbsp;</span></div>
+                        <div class="dial-key" onclick="dialNum('0')"><span class="num">0</span><span
+                                class="chars">+</span></div>
+                        <div class="dial-key" onclick="dialNum('#')"><span class="num">#</span><span
+                                class="chars">&nbsp;</span></div>
+                    </div>
+
+                    <!-- Call Button -->
+                    <div class="flex justify-center items-center gap-8 relative px-10">
+                        <div class="w-12 h-12"></div> <!-- Spacer -->
+                        <div
+                            class="w-16 h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center text-white text-2xl shadow-lg cursor-pointer transition-transform active:scale-95">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                        <div class="w-12 h-12 flex items-center justify-center text-slate-400 text-xl cursor-pointer hover:text-slate-600"
+                            onclick="clearDial()">
+                            <i class="fa-solid fa-delete-left"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen: Messages App UI -->
+            <div id="screen-messages" class="app-screen screen-hidden-right pb-20">
+                <div class="bg-slate-800 text-white pt-14 pb-4 px-5 shadow-md z-10">
+                    <h2 class="text-xl font-bold m-0">Messages</h2>
+                </div>
+                <div class="flex-1 p-3 flex flex-col gap-3 overflow-y-auto bg-slate-50">
+
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-sm text-slate-800">Rahul (Son)</span>
+                            <span class="text-[10px] text-slate-400">Yesterday</span>
+                        </div>
+                        <p class="text-xs text-slate-600 m-0">Hey dad, are we still meeting for dinner this weekend?</p>
+                    </div>
+
+                    <div class="bg-slate-100 p-3 rounded-xl border border-red-200 relative overflow-hidden">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
+                        <div class="flex justify-between items-center mb-1 pl-2">
+                            <span class="font-bold text-sm text-slate-500"><i
+                                    class="fa-solid fa-ban mr-1 text-red-500"></i> Unknown Number</span>
+                            <span class="text-[10px] text-slate-400">Monday</span>
+                        </div>
+                        <p class="text-xs text-slate-500 m-0 pl-2 italic">Medusa blocked this message.</p>
+                        <div
+                            class="mt-2 pl-2 bg-white rounded-lg p-2 text-[10px] text-slate-700 border border-slate-200">
+                            <strong>Reason:</strong> Potential Phishing Scam.<br>
+                            <span class="text-pink-600 font-semibold mt-1 inline-block">Reported to Loved Ones <i
+                                    class="fa-solid fa-heart text-pink-500"></i></span><br>
+                            <span class="text-blue-600 font-semibold mt-1 inline-block">Reported to Cyber Cell & SBI <i
+                                    class="fa-solid fa-building-shield text-blue-500"></i></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Screen: Incoming Call -->
+            <div id="screen-incoming-call" class="app-screen screen-hidden-right">
+                <div class="flex flex-col items-center pt-24 h-full w-full">
+                    <h2 id="incoming-title" class="text-2xl font-bold text-white m-0 transition-colors">Unknown Number
+                    </h2>
+                    <span class="text-slate-400 text-sm mt-1 mb-8">India</span>
+
+                    <div class="w-24 h-24 bg-slate-700 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-user text-4xl text-slate-400"></i>
+                    </div>
+                    <span class="text-slate-400 text-sm mt-4">Incoming Call</span>
+
+                    <div class="mt-auto mb-16 w-full px-10 flex justify-between">
+                        <div class="flex flex-col items-center gap-2">
+                            <div id="btn-decline"
+                                class="w-16 h-16 bg-red-500 rounded-full flex flex-col items-center justify-center text-white text-2xl shadow-lg cursor-pointer transition-colors"
+                                onclick="declineCall()">
+                                <i class="fa-solid fa-phone-slash"></i>
+                            </div>
+                            <span class="text-white text-xs font-semibold">Decline</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg animate-bounce cursor-pointer"
+                                onclick="acceptCall()">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <span class="text-white text-xs font-semibold">Accept</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen: Active Call -->
+            <div id="screen-active-call" class="app-screen screen-hidden-right">
+                <div class="flex flex-col items-center pt-20 h-full w-full">
+                    <div class="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mb-3">
+                        <i class="fa-solid fa-user text-2xl text-slate-400"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-white m-0">Unknown Number</h2>
+                    <span class="text-green-400 text-xs mt-1" id="call-timer">00:00</span>
+
+                    <!-- Live Transcription Box -->
+                    <div class="w-full px-5 mt-4 mb-auto">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-ear-listen text-sky-400 text-xs animate-pulse"></i>
+                            <span class="text-xs text-sky-400 font-bold uppercase tracking-wider">Medusa Live
+                                Transcription</span>
+                        </div>
+                        <div class="subtitle-box" id="subtitle-box">
+                            <!-- Subtitles injected via JS -->
+                        </div>
+
+                        <!-- Suspicion Meter (Just for Show) -->
+                        <div class="mt-4 w-full">
+                            <div class="flex justify-between items-end mb-1.5">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Threat
+                                    Probability</span>
+                                <span id="suspicion-text"
+                                    class="text-xs text-green-400 font-bold transition-colors duration-1000">0%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                                <div id="suspicion-bar" class="h-full bg-green-400 transition-all duration-1000 w-0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-10 w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg cursor-pointer"
+                        onclick="resetPhone()">
+                        <i class="fa-solid fa-phone-slash"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inner Page: Contacts -->
+            <div id="screen-contacts" class="app-screen z-20 transform translate-x-full">
+                <div class="bg-sky-700 text-white pt-14 pb-4 px-4 flex items-center gap-4 shadow-md z-10">
+                    <i class="fa-solid fa-arrow-left text-lg cursor-pointer p-2"
+                        onclick="closeInnerPage('screen-contacts')"></i>
+                    <h2 class="text-lg font-bold m-0">Trusted SBI Contacts</h2>
+                </div>
+                <div class="flex-1 bg-slate-50 p-4 flex flex-col gap-3">
+                    <p class="text-xs text-slate-500 mb-2 px-1">These numbers are cryptographically verified by the
+                        State Bank of India.</p>
+                    <div
+                        class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-sm text-slate-800 block">SBI YONO Helpline</span>
+                            <span class="text-xs text-slate-500">1800 11 2211</span>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-green-500"></i>
+                    </div>
+                    <div
+                        class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-sm text-slate-800 block">SBI Card Support</span>
+                            <span class="text-xs text-slate-500">1860 180 1290</span>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-green-500"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inner Page: Loved Ones -->
+            <div id="screen-loved-ones" class="app-screen z-20 transform translate-x-full">
+                <div class="bg-sky-700 text-white pt-14 pb-4 px-4 flex items-center gap-4 shadow-md z-10">
+                    <i class="fa-solid fa-arrow-left text-lg cursor-pointer p-2"
+                        onclick="closeInnerPage('screen-loved-ones')"></i>
+                    <h2 class="text-lg font-bold m-0">Loved Ones</h2>
+                </div>
+                <div class="flex-1 bg-slate-50 p-4 flex flex-col gap-3">
+                    <p class="text-xs text-slate-500 mb-2 px-1">Guardians who will be notified if a threat is
+                        intercepted on this device.</p>
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                            R</div>
+                        <div class="flex-1">
+                            <span class="font-bold text-sm text-slate-800 block">Rahul (Son)</span>
+                            <span class="text-[10px] text-green-600 font-semibold"><i
+                                    class="fa-solid fa-link text-[8px]"></i> Linked Guardian</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold">
+                            A</div>
+                        <div class="flex-1">
+                            <span class="font-bold text-sm text-slate-800 block">Anjali (Daughter)</span>
+                            <span class="text-[10px] text-green-600 font-semibold"><i
+                                    class="fa-solid fa-link text-[8px]"></i> Linked Guardian</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="bottom-nav" id="bottom-nav" style="display: none;">
+                <div class="nav-item" onclick="switchTab('screen-calls')">
+                    <i class="fa-solid fa-phone"></i>
+                    <span>Call</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('screen-messages')">
+                    <i class="fa-solid fa-message"></i>
+                    <span>Message</span>
+                </div>
+                <div class="nav-item active" onclick="switchTab('screen-home')">
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-xl"></i>
+                    </div>
+                    <span>Guard</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Notification Dropdown -->
+            <div id="incoming-notification">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
+                        id="notif-icon-bg">
+                        <i class="fa-brands fa-whatsapp" id="notif-icon"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-sm text-slate-800" id="notif-app">WhatsApp</span>
+                            <span class="text-[10px] text-slate-400">now</span>
+                        </div>
+                        <span class="font-semibold text-xs text-slate-700 block mt-0.5">Unknown Number</span>
+                        <p class="text-[11px] text-slate-600 leading-tight m-0 mt-1 line-clamp-2" id="notif-text">...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generic Medusa Intercept Bottom Sheet (Redesigned Interface) -->
+            <div id="medusa-intercept">
+                <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4"></div>
+
+                <div class="flex items-center gap-4 mb-4">
+                    <div
+                        class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center animate-pulse shrink-0">
+                        <i class="fa-solid fa-shield-virus text-2xl text-red-600"></i>
+                    </div>
+                    <div>
+                        <h2 id="intercept-title" class="text-xl font-bold m-0 text-red-600">Action Required</h2>
+                        <span class="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Protected by
+                            Medusa AI</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 rounded-xl p-3 mb-4 border border-slate-200 shadow-inner">
+                    <span id="intercept-label"
+                        class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Intercepted
+                        Payload:</span>
+                    <p class="text-[11px] text-slate-700 mt-1 italic border-l-2 border-slate-300 pl-2 leading-tight"
+                        id="intercepted-text">...</p>
+                </div>
+
+                <!-- Grouped Passive Actions -->
+                <div class="bg-white border border-slate-100 shadow-sm rounded-xl p-3.5 mb-4">
+                    <h4 class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-3">Automated Actions
+                        Taken</h4>
+                    <div class="flex flex-col gap-2.5">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-circle-check text-green-500"></i>
+                            <span class="text-xs font-semibold text-slate-700">Connection Terminated</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-circle-check text-green-500"></i>
+                            <span class="text-xs font-semibold text-slate-700">Loved Ones Notified</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1-Click Government Reporting Action (Mandatory) -->
+                <div id="report-action-box"
+                    class="flex items-center justify-between bg-blue-50 border border-blue-200 shadow-sm p-3 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors mb-4"
+                    onclick="fileGovReport()">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-building-shield text-blue-600 w-5 text-center text-lg"></i>
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-blue-900">1-Click Gov Complaint</span>
+                            <span class="text-[9px] text-blue-700 uppercase font-semibold">Automate NCRP & SBI
+                                Alert</span>
+                        </div>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shadow-md shrink-0">
+                        <i id="report-icon" class="fa-solid fa-arrow-right text-white"></i>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-3 opacity-50 transition-opacity mb-2"
+                    id="reward-box">
+                    <i class="fa-solid fa-award text-amber-500 text-2xl ml-1"></i>
+                    <div>
+                        <h4 class="text-amber-700 font-bold text-sm m-0">Rewards Locked</h4>
+                        <p class="text-[10px] text-amber-600 mt-0.5 leading-tight m-0">File complaint to unlock points.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Navigation Post-Report (Hidden until reported) -->
+                <div class="flex flex-col gap-3 mt-4">
+                    <div id="mandatory-warning" class="text-center">
+                        <span class="text-[10px] text-red-500 font-bold uppercase tracking-wider animate-pulse"><i
+                                class="fa-solid fa-triangle-exclamation"></i> Please file complaint to proceed</span>
+                    </div>
+
+                    <div id="post-report-actions" class="flex gap-3 hidden opacity-0 transition-opacity duration-500">
+                        <button onclick="dismissTo('screen-messages')"
+                            class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-3.5 rounded-xl shadow-sm transition-colors">
+                            View in Messages
+                        </button>
+                        <button onclick="dismissTo('screen-home')"
+                            class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3.5 rounded-xl shadow-md transition-colors">
+                            Return to Shield
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let voiceDemoRun = false;
+        let callInterval;
+        let callSeconds = 0;
+        let reportFiled = false;
+
+        // Dialpad state
+        let dialNumber = "";
+
+        // Update clocks
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            document.querySelectorAll('#clock, #lock-clock').forEach(el => {
+                el.innerText = timeString;
+            });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Theme Toggle
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            if (document.documentElement.classList.contains('dark')) {
+                icon.className = "fa-solid fa-sun text-yellow-400";
+            } else {
+                icon.className = "fa-solid fa-moon text-slate-600";
+            }
+        }
+
+        // Screen state management
+        const screens = {
+            sleep: document.getElementById('screen-sleep'),
+            lock: document.getElementById('screen-lock'),
+            home: document.getElementById('screen-home'),
+            messages: document.getElementById('screen-messages'),
+            calls: document.getElementById('screen-calls'),
+            incoming: document.getElementById('screen-incoming-call'),
+            active: document.getElementById('screen-active-call')
+        };
+        const bottomNav = document.getElementById('bottom-nav');
+        const statusBar = document.getElementById('status-bar');
+
+        const attacks = [
+            { app: "WhatsApp", icon: "fa-brands fa-whatsapp", color: "bg-green-500", text: "Mom, my phone is broken and I have an emergency. Please GPay Rs 10,000 to this new number urgently..." },
+            { app: "Telegram", icon: "fa-brands fa-telegram", color: "bg-blue-500", text: "SBI YONO Alert: Your account is blocked. Click here to verify KYC immediately or face penalty: http://fake-sbi-kyc.com" },
+            { app: "Messages", icon: "fa-solid fa-comment-sms", color: "bg-yellow-500", text: "Dad, this is my new number. I lost my phone. Need money for a taxi right now, please send..." }
+        ];
+
+        // --- Live Flow Tracker Logic ---
+        function updateFlow(stepNum) {
+            document.getElementById('flow-desc').innerText =
+                stepNum === 1 ? "Normal State: Scanning incoming traffic and app permissions." :
+                    stepNum === 2 ? "Alert: Suspicious payload detected via network." :
+                        stepNum === 3 ? "Action: Local SLM confirms malicious intent. Intercepting." :
+                            stepNum === 4 ? "Resolution: Threat neutralized & community alerted." : "";
+
+            for (let i = 1; i <= 4; i++) {
+                const node = document.getElementById(`flow-${i}`);
+                if (i <= stepNum) {
+                    node.classList.remove('opacity-60');
+                    node.classList.add('active-node');
+                } else {
+                    node.classList.add('opacity-60');
+                    node.classList.remove('active-node');
+                }
+            }
+        }
+
+        function wakePhone() {
+            screens.sleep.classList.remove('screen-active');
+            screens.lock.classList.remove('screen-hidden-right', 'screen-hidden-left');
+            screens.lock.classList.add('screen-active', 'glow-effect');
+        }
+
+        function unlockPhone() {
+            screens.lock.classList.remove('screen-active', 'glow-effect');
+            screens.home.classList.remove('screen-hidden-right', 'screen-hidden-left');
+            screens.home.classList.add('screen-active');
+
+            bottomNav.style.display = 'flex';
+            statusBar.style.color = '#1e293b';
+
+            document.getElementById('demo-status').innerText = "Phase 1: SMS Scam Initialized...";
+
+            updateFlow(1);
+
+            // Phase 1: Automatically Trigger Text Attack shortly after unlock
+            setTimeout(triggerTextAttack, 2500);
+        }
+
+        function switchTab(tabId) {
+            closeInnerPage('screen-contacts');
+            closeInnerPage('screen-loved-ones');
+
+            screens.home.classList.remove('screen-active');
+            screens.messages.classList.remove('screen-active');
+            screens.calls.classList.remove('screen-active');
+
+            document.getElementById(tabId).classList.remove('screen-hidden-right', 'screen-hidden-left');
+            document.getElementById(tabId).classList.add('screen-active');
+
+            statusBar.style.color = '#1e293b';
+
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function openInnerPage(pageId) {
+            document.getElementById(pageId).style.transform = 'translateX(0)';
+            document.getElementById(pageId).style.opacity = '1';
+            document.getElementById(pageId).style.pointerEvents = 'auto';
+        }
+
+        function closeInnerPage(pageId) {
+            document.getElementById(pageId).style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                document.getElementById(pageId).style.opacity = '0';
+                document.getElementById(pageId).style.pointerEvents = 'none';
+            }, 300);
+        }
+
+        function openDialpad() {
+            document.getElementById('screen-dialpad').style.transform = 'translateY(0)';
+        }
+
+        function closeDialpad() {
+            document.getElementById('screen-dialpad').style.transform = 'translateY(100%)';
+            setTimeout(clearDial, 300);
+        }
+
+        function dialNum(n) {
+            if (dialNumber.length < 15) {
+                dialNumber += n;
+                updateDialDisplay();
+            }
+        }
+
+        function clearDial() {
+            dialNumber = dialNumber.slice(0, -1);
+            updateDialDisplay();
+        }
+
+        function updateDialDisplay() {
+            document.getElementById('dialpad-display').innerText = dialNumber;
+        }
+
+        function triggerTextAttack() {
+            resetReportState();
+            const attack = attacks[Math.floor(Math.random() * attacks.length)];
+
+            document.getElementById('notif-app').innerText = attack.app;
+            document.getElementById('notif-icon').className = attack.icon;
+            document.getElementById('notif-icon-bg').className = `w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm shrink-0 ${attack.color}`;
+            document.getElementById('notif-text').innerText = attack.text;
+
+            document.getElementById('intercept-title').innerText = "Action Required";
+            document.getElementById('intercept-label').innerText = "Intercepted Text Payload:";
+            document.getElementById('intercepted-text').innerText = `[${attack.app}] ` + attack.text;
+
+            const notif = document.getElementById('incoming-notification');
+            notif.style.top = '40px';
+
+            updateFlow(2);
+
+            setTimeout(() => {
+                notif.style.top = '-100px';
+                document.getElementById('medusa-intercept').classList.add('active-intercept');
+                updateFlow(3);
+                document.getElementById('demo-status').innerText = "Phase 1: Intercepted Text. Waiting for User...";
+            }, 1800);
+        }
+
+        function fileGovReport() {
+            if (reportFiled) return;
+            const icon = document.getElementById('report-icon');
+            const box = document.getElementById('report-action-box');
+
+            icon.className = "fa-solid fa-circle-notch fa-spin text-white text-sm";
+
+            setTimeout(() => {
+                reportFiled = true;
+                updateFlow(4);
+
+                icon.className = "fa-solid fa-check text-white";
+                icon.parentElement.className = "w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md shrink-0";
+
+                box.className = "flex items-center justify-between bg-green-50 border border-green-200 shadow-sm p-3 rounded-xl mb-4";
+                box.querySelector('span.text-blue-900').classList.replace('text-blue-900', 'text-green-800');
+                box.querySelector('span.text-green-800').innerText = "Complaint Filed Successfully";
+                box.querySelector('span.text-blue-700').innerText = "NCRP & SBI Alert ID: #7782A";
+                box.querySelector('span.text-blue-700').classList.replace('text-blue-700', 'text-green-700');
+                box.querySelector('.fa-building-shield').classList.replace('text-blue-600', 'text-green-600');
+
+                // Random rewards computation (50 to 500)
+                const pts = Math.floor(Math.random() * (500 - 50 + 1)) + 50;
+
+                const rewardBox = document.getElementById('reward-box');
+                rewardBox.classList.remove('opacity-50');
+                rewardBox.querySelector('h4').innerHTML = `🎉 Rewards Unlocked!`;
+                rewardBox.querySelector('p').innerHTML = `You earned <b class="text-amber-700">+${pts} points</b> for protecting the community.`;
+
+                // Add CSS celebration pop
+                rewardBox.classList.add('celebrate-anim');
+
+                // Unhide the navigation buttons making them mandatory
+                document.getElementById('mandatory-warning').style.display = 'none';
+                const postActions = document.getElementById('post-report-actions');
+                postActions.classList.remove('hidden');
+                void postActions.offsetWidth; // trigger reflow
+                postActions.classList.remove('opacity-0');
+
+                box.onclick = null;
+            }, 1500);
+        }
+
+        // Handles routing after intercept is dismissed
+        function dismissTo(targetScreen) {
+            document.getElementById('medusa-intercept').classList.remove('active-intercept');
+
+            setTimeout(() => {
+                screens.home.classList.remove('screen-active');
+                screens.messages.classList.remove('screen-active');
+                screens.calls.classList.remove('screen-active');
+
+                screens[targetScreen.replace('screen-', '')].classList.remove('screen-hidden-right', 'screen-hidden-left');
+                screens[targetScreen.replace('screen-', '')].classList.add('screen-active');
+
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(item => item.classList.remove('active'));
+
+                if (targetScreen === 'screen-messages') navItems[1].classList.add('active');
+                else if (targetScreen === 'screen-calls') navItems[0].classList.add('active');
+                else navItems[2].classList.add('active');
+
+                statusBar.style.color = '#1e293b';
+
+                updateFlow(1);
+
+                // Automatically trigger the next phase (Voice Scam) if it hasn't run yet
+                if (!voiceDemoRun && targetScreen === 'screen-messages') {
+                    document.getElementById('demo-status').innerText = "Phase 2: Live Voice Scam Initialized...";
+                    setTimeout(triggerIncomingCall, 4000);
+                    voiceDemoRun = true;
+                } else if (voiceDemoRun) {
+                    document.getElementById('demo-status').innerText = "Demo Complete. Ready for Reset.";
+                }
+            }, 300);
+        }
+
+        /* --- Voice Call Demo Logic --- */
+        function triggerIncomingCall() {
+            bottomNav.style.display = 'none';
+            statusBar.style.color = 'white';
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('screen-active');
+            });
+
+            // Reset decline button if used
+            const declineBtn = document.getElementById('btn-decline');
+            declineBtn.innerHTML = '<i class="fa-solid fa-phone-slash"></i>';
+            declineBtn.classList.replace('bg-slate-500', 'bg-red-500');
+            const title = document.getElementById('incoming-title');
+            title.innerText = "Unknown Number";
+            title.classList.remove('text-sky-400');
+            title.classList.add('text-white');
+
+            screens.incoming.classList.remove('screen-hidden-right', 'screen-hidden-left');
+            screens.incoming.classList.add('screen-active');
+
+            updateFlow(2);
+        }
+
+        function declineCall() {
+            // Demo force behavior
+            const declineBtn = document.getElementById('btn-decline');
+            declineBtn.innerHTML = '<i class="fa-solid fa-ban text-white"></i>';
+            declineBtn.classList.replace('bg-red-500', 'bg-slate-500');
+
+            const title = document.getElementById('incoming-title');
+            title.innerText = "Demo: Forcing Accept...";
+            title.classList.replace('text-white', 'text-sky-400');
+
+            setTimeout(acceptCall, 1000);
+        }
+
+        function acceptCall() {
+            screens.incoming.classList.remove('screen-active');
+
+            screens.active.classList.remove('screen-hidden-right', 'screen-hidden-left');
+            screens.active.classList.add('screen-active');
+
+            callSeconds = 0;
+            document.getElementById('call-timer').innerText = "00:00";
+            callInterval = setInterval(() => {
+                callSeconds++;
+                const min = Math.floor(callSeconds / 60).toString().padStart(2, '0');
+                const sec = (callSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('call-timer').innerText = `${min}:${sec}`;
+            }, 1000);
+
+            const subtitleBox = document.getElementById('subtitle-box');
+            subtitleBox.innerHTML = '';
+
+            const suspicionBar = document.getElementById('suspicion-bar');
+            const suspicionText = document.getElementById('suspicion-text');
+            suspicionBar.style.width = '0%';
+            suspicionBar.className = "h-full transition-all duration-1000 w-0 bg-green-400";
+            suspicionText.innerText = "0%";
+            suspicionText.className = "text-xs font-bold transition-colors duration-1000 text-green-400";
+
+            // Extensive Social Engineering Script for Demo with longer delays
+            const dialogue = [
+                { text: "Hello, am I speaking to Mr. Rahul?", suspicion: 5, delay: 3000 },
+                { text: "I am calling from the SBI YONO head office.", suspicion: 15, delay: 3500 },
+                { text: "We noticed an unauthorized login attempt on your account from Dubai.", suspicion: 40, delay: 4000 },
+                { text: "To secure your funds, we must temporarily freeze your digital access.", suspicion: 65, delay: 4000 },
+                { text: "I have sent a secure KYC verification link to your WhatsApp.", suspicion: 85, delay: 4000 },
+                { text: "Please download the APK file and tell me the 6-digit OTP to cancel the block.", suspicion: 100, delay: 1000 }
+            ];
+
+            let i = 0;
+            function addSubtitle() {
+                if (i < dialogue.length) {
+                    const prev = subtitleBox.querySelectorAll('.subtitle-line');
+                    prev.forEach(p => p.classList.remove('latest'));
+
+                    const p = document.createElement('p');
+                    p.className = 'subtitle-line latest';
+                    p.innerHTML = `<strong>Caller:</strong> ${dialogue[i].text}`;
+                    subtitleBox.appendChild(p);
+
+                    if (subtitleBox.children.length > 3) {
+                        subtitleBox.removeChild(subtitleBox.firstChild);
+                    }
+
+                    // Update Suspicion Meter
+                    let val = dialogue[i].suspicion;
+                    suspicionBar.style.width = `${val}%`;
+                    suspicionText.innerText = `${val}%`;
+
+                    if (val > 30 && val <= 60) {
+                        suspicionBar.className = "h-full transition-all duration-1000 bg-yellow-400";
+                        suspicionText.className = "text-xs font-bold transition-colors duration-1000 text-yellow-400";
+                    } else if (val > 60 && val < 100) {
+                        suspicionBar.className = "h-full transition-all duration-1000 bg-orange-500";
+                        suspicionText.className = "text-xs font-bold transition-colors duration-1000 text-orange-500";
+                    } else if (val === 100) {
+                        suspicionBar.className = "h-full transition-all duration-1000 bg-red-500";
+                        suspicionText.className = "text-xs font-bold transition-colors duration-1000 text-red-500";
+                    }
+
+                    if (val === 100) {
+                        clearInterval(callInterval);
+                        setTimeout(blockVoiceCall, 1200);
+                        return;
+                    }
+
+                    const currentDelay = dialogue[i].delay;
+                    i++;
+                    setTimeout(addSubtitle, currentDelay);
+                }
+            }
+            // Start talking after 1 second
+            setTimeout(addSubtitle, 1000);
+        }
+
+        function blockVoiceCall() {
+            resetReportState();
+            document.getElementById('intercept-title').innerText = "Action Required";
+            document.getElementById('intercept-label').innerText = "Live Transcription Trigger:";
+            document.getElementById('intercepted-text').innerText = `"...download the APK file and tell me the 6-digit OTP..."`;
+
+            document.getElementById('medusa-intercept').classList.add('active-intercept');
+            document.getElementById('call-timer').innerText = "Call Terminated";
+            document.getElementById('call-timer').classList.replace('text-green-400', 'text-red-400');
+            document.getElementById('demo-status').innerText = "Phase 2: Voice Scam Blocked. Waiting for User...";
+
+            updateFlow(3);
+        }
+
+        function resetReportState() {
+            reportFiled = false;
+            const box = document.getElementById('report-action-box');
+            box.className = "flex items-center justify-between bg-blue-50 border border-blue-200 shadow-sm p-3 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors mb-4";
+            box.onclick = fileGovReport;
+
+            box.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-building-shield text-blue-600 w-5 text-center text-lg"></i>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-bold text-blue-900">1-Click Gov Complaint</span>
+                        <span class="text-[9px] text-blue-700 uppercase font-semibold">Automate NCRP & SBI Alert</span>
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shadow-md shrink-0">
+                    <i id="report-icon" class="fa-solid fa-arrow-right text-white"></i>
+                </div>
+            `;
+
+            const rewardBox = document.getElementById('reward-box');
+            rewardBox.className = "bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-3 opacity-50 transition-opacity mb-2"; // reset class
+            rewardBox.querySelector('h4').innerText = "Rewards Locked";
+            rewardBox.querySelector('p').innerText = "File complaint to unlock points.";
+
+            // Reset navigation actions (Make it mandatory again)
+            document.getElementById('mandatory-warning').style.display = 'block';
+            const postActions = document.getElementById('post-report-actions');
+            postActions.classList.add('hidden', 'opacity-0');
+        }
+
+        function resetPhone() {
+            clearInterval(callInterval);
+            voiceDemoRun = false;
+
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('screen-active');
+                screen.classList.add('screen-hidden-right');
+            });
+
+            screens.sleep.classList.remove('screen-hidden-right', 'screen-hidden-left');
+            screens.sleep.classList.add('screen-active');
+
+            bottomNav.style.display = 'none';
+            statusBar.style.color = 'white';
+
+            document.getElementById('incoming-notification').style.top = '-100px';
+            document.getElementById('medusa-intercept').classList.remove('active-intercept');
+            closeInnerPage('screen-contacts');
+            closeInnerPage('screen-loved-ones');
+            closeDialpad();
+
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[2].classList.add('active'); // Guard
+            resetReportState();
+
+            document.getElementById('demo-status').innerText = "Waiting for Unlock...";
+            document.getElementById('flow-desc').innerText = "Awaiting device activation...";
+            for (let i = 1; i <= 4; i++) {
+                const node = document.getElementById(`flow-${i}`);
+                if (i === 1) {
+                    node.classList.remove('opacity-60');
+                    node.classList.add('active-node');
+                } else {
+                    node.classList.add('opacity-60');
+                    node.classList.remove('active-node');
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
